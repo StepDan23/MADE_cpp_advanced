@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+# define EXP_MASK 0x7FF0000000000000
+# define FRAC_MASK 0x000FFFFFFFFFFFFF
 
 
 /**
@@ -15,7 +17,7 @@ uint64_t convertToUint64 (double number) {
 }
 
 bool getBit (const uint64_t number, const uint8_t index) {
-    /// Your code here...
+    return (number >> index) & 1;
 }
 
 
@@ -24,43 +26,73 @@ bool getBit (const uint64_t number, const uint8_t index) {
  */
 
 bool checkForPlusZero (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return !minus_sing && exp == 0 && frac == 0;
 }
 
 bool checkForMinusZero (uint64_t number) {
-    return number == 0x8000000000000000;
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return minus_sing && exp == 0 && frac == 0;
 }
 
 bool checkForPlusInf (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return !minus_sing && exp == EXP_MASK && frac == 0;
 }
 
 bool checkForMinusInf (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return minus_sing && exp == EXP_MASK && frac == 0;
 }
 
 bool checkForPlusNormal (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return !minus_sing && exp > 0 && exp != EXP_MASK;
 }
 
 bool checkForMinusNormal (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return minus_sing && exp > 0 && exp != EXP_MASK;
 }
 
 bool checkForPlusDenormal (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return !minus_sing && exp == 0 && frac != 0;
 }
 
 bool checkForMinusDenormal (uint64_t number) {
-    /// Your code here.
+    bool minus_sing = getBit(number, 63);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return minus_sing && exp == 0 && frac != 0;
 }
 
 bool checkForSignalingNan (uint64_t number) {
-    /// Your code here.
+    bool quiet_sign = getBit(number, 51);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return !quiet_sign && exp == EXP_MASK;
 }
 
 bool checkForQuietNan (uint64_t number) {
-    /// Your code here.
+    bool quiet_sign = getBit(number, 51);
+    uint64_t exp = number & EXP_MASK;
+    uint64_t frac = number & FRAC_MASK;
+    return quiet_sign && exp == EXP_MASK;
 }
 
 
@@ -108,4 +140,23 @@ void classify (double number) {
     else {
         printf("Error.\n");
     }
+}
+
+
+int main (int argc, char **argv)
+{
+    if (argc > 1)
+    {
+        int i = 1;
+        while (i < argc)
+        {
+            double num = atof(argv[i]);
+            printf("read %.2f, this number is: ", num);
+            classify(num);
+            i++;
+        }
+    }
+    else
+        printf("waiting arguments for program");
+    return (0);
 }
