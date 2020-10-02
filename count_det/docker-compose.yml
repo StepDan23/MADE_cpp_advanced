@@ -10,3 +10,5 @@ services:
 
 #  docker-compose build
 #  docker-compose run ubuntu /bin/bash
+#  arm-linux-gnueabi-gcc -marm main.c main.s -o app
+#  qemu-arm -L $LINARO_SYSROOT ./app
