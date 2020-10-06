@@ -3,34 +3,57 @@
 #include <iostream>
 # include <cmath>
 
-using namespace std;
-
 
 namespace task {
 
-    vector<double> operator+(vector<double> vec, vector<double> vec_1) {
+    std::vector<double> operator+ (std::vector<double>, std::vector<double>);
+    std::vector<double> operator- (std::vector<double>, std::vector<double>);
+    std::vector<double> operator+ (std::vector<double>);
+    std::vector<double> operator- (std::vector<double>);
+    double operator* (std::vector<double>, std::vector<double>);
+    std::vector<double> operator% (std::vector<double>, std::vector<double>);
+    bool operator|| (std::vector<double>, std::vector<double>);
+    bool operator&& (std::vector<double>, std::vector<double>);
+    std::vector<int> operator| (std::vector<int>, std::vector<int>);
+    std::vector<int> operator& (std::vector<int>, std::vector<int>);
+
+    std::ostream& operator<< (std::ostream&, std::vector<double>&);
+    std::istream& operator>> (std::istream&, std::vector<double>&);
+    void reverse (std::vector<double>&);
+
+    std::vector<double> operator+ (std::vector<double> vec, std::vector<double> vec_1) {
+        std::vector<double> new_vec(vec.size());
+
         for (size_t i = 0; i < vec.size(); ++i)
-            vec[i] += vec_1[i];
-        return vec;
+            new_vec[i] = vec[i] +vec_1[i];
+        return new_vec;
     }
 
-    vector<double> operator-(vector<double> vec, vector<double> vec_1) {
+    std::vector<double> operator- (std::vector<double> vec, std::vector<double> vec_1) {
+        std::vector<double> new_vec(vec.size());
+
         for (size_t i = 0; i < vec.size(); ++i)
-            vec[i] -= vec_1[i];
-        return vec;
+            new_vec[i] = vec[i] - vec_1[i];
+        return new_vec;
     }
 
-    vector<double> operator+(vector<double> vec) {
-        return vec;
-    }
+    std::vector<double> operator+ (std::vector<double> vec) {
+        std::vector<double> new_vec(vec.size());
 
-    vector<double> operator-(vector<double> vec) {
         for (size_t i = 0; i < vec.size(); ++i)
-            vec[i] = -vec[i];
-        return vec;
+            new_vec[i] = vec[i];
+        return new_vec;
     }
 
-    double operator*(vector<double> vec, vector<double> vec_1) {
+    std::vector<double> operator- (std::vector<double> vec) {
+        std::vector<double> new_vec(vec.size());
+
+        for (size_t i = 0; i < vec.size(); ++i)
+            new_vec[i] = -vec[i];
+        return new_vec;
+    }
+
+    double operator* (std::vector<double> vec, std::vector<double> vec_1) {
         double result = 0;
 
         for (size_t i = 0; i < vec.size(); ++i)
@@ -38,8 +61,8 @@ namespace task {
         return result;
     }
 
-    vector<double> operator%(vector<double> vec, vector<double> vec_1) {
-        vector<double> new_vec(vec.size());
+    std::vector<double> operator% (std::vector<double> vec, std::vector<double> vec_1) {
+        std::vector<double> new_vec(vec.size());
 
         new_vec[0] = vec[2] * vec_1[1] - vec[1] * vec_1[2];
         new_vec[1] = vec[0] * vec_1[2] - vec[2] * vec_1[0];
@@ -48,17 +71,17 @@ namespace task {
         return new_vec;
     }
 
-    bool operator||(vector<double> vec, vector<double> vec_1)  {
+    bool operator|| (std::vector<double> vec, std::vector<double> vec_1)  {
         const double EPS = 1e-7;
         double cos_fi = vec * vec_1 / sqrt((vec * vec) * (vec_1 * vec_1));
 
-        if (1.0 - (abs(cos_fi)) > EPS)
+        if (1.0 - abs(cos_fi) > EPS)
             return false;
 
         return true;
     }
 
-    bool operator&&(vector<double> vec, vector<double> vec_1)  {
+    bool operator&& (std::vector<double> vec, std::vector<double> vec_1)  {
         const double EPS = 1e-7;
         double ratio = vec[0] / vec_1[0];
 
@@ -72,29 +95,33 @@ namespace task {
         return true;
     }
 
-    vector<int> operator|(vector<int> vec, vector<int> vec_1) {
-        for (size_t i = 0; i < vec.size(); ++i)
-            vec[i] |= vec_1[i];
+    std::vector<int> operator| (std::vector<int> vec, std::vector<int> vec_1) {
+        std::vector<int> new_vec(vec.size());
 
-        return vec;
+        for (size_t i = 0; i < vec.size(); ++i)
+            new_vec[i] =  vec[i] | vec_1[i];
+
+        return new_vec;
     }
 
-    vector<int> operator&(vector<int> vec, vector<int> vec_1) {
-        for (size_t i = 0; i < vec.size(); ++i)
-            vec[i] &= vec_1[i];
+    std::vector<int> operator& (std::vector<int> vec, std::vector<int> vec_1) {
+        std::vector<int> new_vec(vec.size());
 
-        return vec;
+        for (size_t i = 0; i < vec.size(); ++i)
+            new_vec[i] = vec[i] & vec_1[i];
+
+        return new_vec;
     }
 
-    ostream &operator<<(ostream &out, vector<double> vec) {
-        for (auto val: vec)
+    std::ostream& operator<< (std::ostream &out, std::vector<double> &vec) {
+        for (double val: vec)
             out << val << ' ';
-        out << endl;
+        out << std::endl;
 
         return out;
     }
 
-    istream &operator>>(istream &in, vector<double> &vec) {
+    std::istream& operator>> (std::istream &in, std::vector<double> &vec) {
         int vec_size;
 
         in >> vec_size;
@@ -106,8 +133,8 @@ namespace task {
         return in;
     }
 
-    void reverse(vector<double> &vec){
+    void reverse (std::vector<double> &vec){
         for (size_t i = 0; i < vec.size() / 2; ++i)
-            swap(vec[i], vec[vec.size() - 1 - i]);
+            std::swap(vec[i], vec[vec.size() - 1 - i]);
     }
 }
