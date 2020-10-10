@@ -5,6 +5,9 @@
 
 namespace task {
 
+const double _EPS_DIV = 1e-7;
+const double _EPS_EQU = 1e-2;
+
 std::vector<double> operator+(std::vector<double> vec, std::vector<double> vec_1);
 std::vector<double> operator-(std::vector<double> vec, std::vector<double> vec_1);
 std::vector<double> operator+(std::vector<double> vec);
@@ -71,24 +74,21 @@ std::vector<double> operator%(std::vector<double> vec, std::vector<double> vec_1
 }
 
 bool operator||(std::vector<double> vec, std::vector<double> vec_1) {
-  const double EPS = 1e-7;
-  double cos_fi = vec * vec_1 / sqrt((vec * vec) * (vec_1 * vec_1));
+  double cos_fi = vec * vec_1 / (sqrt((vec * vec) * (vec_1 * vec_1)) + _EPS_DIV);
 
-  if (1.0 - abs(cos_fi) > EPS)
+  if (1.0 - fabs(cos_fi) > _EPS_EQU)
     return false;
 
   return true;
 }
 
 bool operator&&(std::vector<double> vec, std::vector<double> vec_1) {
-  const double EPS = 1e-7;
-  double ratio = vec[0] / vec_1[0];
-
+  double ratio = vec[0] / (vec_1[0] + _EPS_DIV);
   if (ratio < 0)
     return false;
 
   for (size_t i = 0; i < vec.size(); ++i)
-    if (abs(ratio - vec[i] / vec_1[i]) > EPS)
+    if (fabs(ratio - vec[i] / (vec_1[i] + _EPS_DIV)) > _EPS_EQU)
       return false;
 
   return true;
