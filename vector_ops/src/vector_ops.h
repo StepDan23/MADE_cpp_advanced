@@ -4,26 +4,40 @@
 #include <cmath>
 
 namespace task {
+const double EPS_DIV = 1e-8;
+const double EPS_EQU = 1e-6;
 
-const double _EPS_DIV = 1e-7;
-const double _EPS_EQU = 1e-2;
+std::vector<double> operator+(const std::vector<double> &,
+                              const std::vector<double> &);
 
-std::vector<double> operator+(std::vector<double> vec, std::vector<double> vec_1);
-std::vector<double> operator-(std::vector<double> vec, std::vector<double> vec_1);
-std::vector<double> operator+(std::vector<double> vec);
-std::vector<double> operator-(std::vector<double> vec);
-double operator*(std::vector<double> vec, std::vector<double> vec_1);
-std::vector<double> operator%(std::vector<double> vec, std::vector<double> vec_1);
-bool operator||(std::vector<double> vec, std::vector<double> vec_1);
-bool operator&&(std::vector<double> vec, std::vector<double> vec_1);
-std::vector<int> operator|(std::vector<int> vec, std::vector<int> vec_1);
-std::vector<int> operator&(std::vector<int> vec, std::vector<int> vec_1);
+std::vector<double> operator-(const std::vector<double> &,
+                              const std::vector<double> &);
 
-std::ostream &operator<<(std::ostream &out, std::vector<double> &vec);
-std::istream &operator>>(std::istream &in, std::vector<double> &vec);
-void reverse(std::vector<double> &vec);
+std::vector<double> operator+(const std::vector<double> &);
 
-std::vector<double> operator+(std::vector<double> vec, std::vector<double> vec_1) {
+std::vector<double> operator-(const std::vector<double> &);
+
+double operator*(const std::vector<double> &, const std::vector<double> &);
+
+std::vector<double> operator%(const std::vector<double> &,
+                              const std::vector<double> &);
+
+bool operator||(const std::vector<double> &, const std::vector<double> &);
+
+bool operator&&(const std::vector<double> &, const std::vector<double> &);
+
+std::vector<int> operator|(const std::vector<int> &, const std::vector<int> &);
+
+std::vector<int> operator&(const std::vector<int> &, const std::vector<int> &);
+
+std::ostream &operator<<(std::ostream &, const std::vector<double> &);
+
+std::istream &operator>>(std::istream &, std::vector<double> &);
+
+void reverse(std::vector<double> &);
+
+std::vector<double> operator+(const std::vector<double> &vec,
+                              const std::vector<double> &vec_1) {
   std::vector<double> new_vec(vec.size());
 
   for (size_t i = 0; i < vec.size(); ++i)
@@ -31,7 +45,8 @@ std::vector<double> operator+(std::vector<double> vec, std::vector<double> vec_1
   return new_vec;
 }
 
-std::vector<double> operator-(std::vector<double> vec, std::vector<double> vec_1) {
+std::vector<double> operator-(const std::vector<double> &vec,
+                              const std::vector<double> &vec_1) {
   std::vector<double> new_vec(vec.size());
 
   for (size_t i = 0; i < vec.size(); ++i)
@@ -39,15 +54,11 @@ std::vector<double> operator-(std::vector<double> vec, std::vector<double> vec_1
   return new_vec;
 }
 
-std::vector<double> operator+(std::vector<double> vec) {
-  std::vector<double> new_vec(vec.size());
-
-  for (size_t i = 0; i < vec.size(); ++i)
-    new_vec[i] = vec[i];
-  return new_vec;
+std::vector<double> operator+(const std::vector<double> &vec) {
+  return std::vector<double>(vec);
 }
 
-std::vector<double> operator-(std::vector<double> vec) {
+std::vector<double> operator-(const std::vector<double> &vec) {
   std::vector<double> new_vec(vec.size());
 
   for (size_t i = 0; i < vec.size(); ++i)
@@ -55,7 +66,8 @@ std::vector<double> operator-(std::vector<double> vec) {
   return new_vec;
 }
 
-double operator*(std::vector<double> vec, std::vector<double> vec_1) {
+double operator*(const std::vector<double> &vec,
+                 const std::vector<double> &vec_1) {
   double result = 0;
 
   for (size_t i = 0; i < vec.size(); ++i)
@@ -63,7 +75,8 @@ double operator*(std::vector<double> vec, std::vector<double> vec_1) {
   return result;
 }
 
-std::vector<double> operator%(std::vector<double> vec, std::vector<double> vec_1) {
+std::vector<double> operator%(const std::vector<double> &vec,
+                              const std::vector<double> &vec_1) {
   std::vector<double> new_vec(vec.size());
 
   new_vec[0] = vec[2] * vec_1[1] - vec[1] * vec_1[2];
@@ -73,28 +86,24 @@ std::vector<double> operator%(std::vector<double> vec, std::vector<double> vec_1
   return new_vec;
 }
 
-bool operator||(std::vector<double> vec, std::vector<double> vec_1) {
-  double cos_fi = vec * vec_1 / (sqrt((vec * vec) * (vec_1 * vec_1)) + _EPS_DIV);
+bool operator||(const std::vector<double> &vec,
+                const std::vector<double> &vec_1) {
+  double cos_fi;
+  cos_fi = vec * vec_1 / (sqrt((vec * vec) * (vec_1 * vec_1)) + EPS_DIV);
 
-  if (1.0 - fabs(cos_fi) > _EPS_EQU)
+  if (1.0 - abs(cos_fi) > EPS_EQU)
     return false;
 
   return true;
 }
 
-bool operator&&(std::vector<double> vec, std::vector<double> vec_1) {
-  double ratio = vec[0] / (vec_1[0] + _EPS_DIV);
-  if (ratio < 0)
-    return false;
-
-  for (size_t i = 0; i < vec.size(); ++i)
-    if (fabs(ratio - vec[i] / (vec_1[i] + _EPS_DIV)) > _EPS_EQU)
-      return false;
-
-  return true;
+bool operator&&(const std::vector<double> &vec,
+                const std::vector<double> &vec_1) {
+  return (vec || vec_1) and (vec * vec_1 >= 0);
 }
 
-std::vector<int> operator|(std::vector<int> vec, std::vector<int> vec_1) {
+std::vector<int> operator|(const std::vector<int> &vec,
+                           const std::vector<int> &vec_1) {
   std::vector<int> new_vec(vec.size());
 
   for (size_t i = 0; i < vec.size(); ++i)
@@ -103,7 +112,8 @@ std::vector<int> operator|(std::vector<int> vec, std::vector<int> vec_1) {
   return new_vec;
 }
 
-std::vector<int> operator&(std::vector<int> vec, std::vector<int> vec_1) {
+std::vector<int> operator&(const std::vector<int> &vec,
+                           const std::vector<int> &vec_1) {
   std::vector<int> new_vec(vec.size());
 
   for (size_t i = 0; i < vec.size(); ++i)
@@ -112,7 +122,7 @@ std::vector<int> operator&(std::vector<int> vec, std::vector<int> vec_1) {
   return new_vec;
 }
 
-std::ostream &operator<<(std::ostream &out, std::vector<double> &vec) {
+std::ostream &operator<<(std::ostream &out, const std::vector<double> &vec) {
   for (double val: vec)
     out << val << ' ';
   out << std::endl;
