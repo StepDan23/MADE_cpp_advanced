@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+class WrongShape : public std::exception {};
+
 bool areSame(const double &a, const double &b) {
   const double EPS = 1e-6;
 
@@ -10,8 +12,6 @@ bool areSame(const double &a, const double &b) {
 }
 
 double angle2rad(const double &angle) { return angle * M_PI / 180.; }
-
-class WrongShape : public std::exception {};
 
 /** Point **/
 struct Point {
@@ -21,8 +21,6 @@ struct Point {
   Point() : x(0.), y(0.) {}
 
   Point(const double &x_, const double y_) : x(x_), y(y_) {}
-
-  Point(const Point &point) : x(point.x), y(point.y) {}
 
   Point &operator=(const Point &other) {
     if (this != &other) {
@@ -92,7 +90,6 @@ struct Point {
         + (this->x - center.x) * sin(angle2rad(angle));
     *this = new_point;
   }
-
 };
 
 std::ostream &operator<<(std::ostream &output, const Point &point) {
@@ -187,13 +184,22 @@ Point projection(const Point &point, const Line &line) {
 /** Shape **/
 class Shape {
  public:
-  virtual double perimeter() const { return 1.0; }
-  virtual double area() const { return 1.0; }
-  virtual bool operator==(const Shape &another) const { return true; }
+  virtual double perimeter() const { return 0.; }
+
+  virtual double area() const { return 0.; }
+
+  virtual bool operator==(const Shape &other) const { return true; }
+
+  virtual bool operator!=(const Shape &other) const {
+    return !(*this == other);
+  }
 
   virtual void rotate(const Point &center, const double &angle) {}
+
   virtual void reflex(const Point &center) {}
+
   virtual void reflex(const Line &axis) {}
+
   virtual void scale(const Point &center, const double &coefficient) {}
 };
 /** Shape **/
@@ -203,7 +209,7 @@ class Polygon : public Shape {
  protected:
   std::vector<Point> points;
  public:
-  Polygon(const size_t &size) : points(std::vector<Point>(size)) {
+  explicit Polygon(const size_t &size) : points(size) {
     if (size < 3)
       throw WrongShape();
   }
@@ -213,7 +219,7 @@ class Polygon : public Shape {
       throw WrongShape();
   }
 
-  Polygon(const std::vector<Point> &points_vec) : points(points_vec) {
+  explicit Polygon(const std::vector<Point> &points_vec) : points(points_vec) {
     if (this->points.size() < 3)
       throw WrongShape();
   }
@@ -329,8 +335,11 @@ class Ellipse : public Shape {
   Point center() const { return (this->f1 + this->f2) / 2.; }
 
   double perimeter() const override {
-//    return M_PI * sqrt(2. * (this->a * this->a + this->b * this->b));
-    return M_PI * (3. / 2. * (a + b) - sqrt(a * b));
+    double h = pow((this->a - this->b), 2) / pow((this->a + this->b), 2);
+    double ramanujan_factor = 1 + 3. * h / (10. + sqrt(4. - 3 * h));
+
+    double perimeter = M_PI * (this->a + this->b) * ramanujan_factor;
+    return perimeter;
   }
 
   double area() const override { return M_PI * this->a * this->b; }
@@ -357,13 +366,13 @@ class Triangle : public Polygon {
     Line b_c = Line(this->points[1], this->points[2]);
     Line c_a = Line(this->points[2], this->points[0]);
 
-    Line diagonal_a = Line(a_b, this->points[1], a_b.angleBetween(b_c) / 2.);
-    Line diagonal_b = Line(b_c, this->points[2], b_c.angleBetween(c_a) / 2.);
+    Line bisector_a = Line(a_b, this->points[1], a_b.angleBetween(b_c) / 2.);
+    Line bisector_b = Line(b_c, this->points[2], b_c.angleBetween(c_a) / 2.);
 
-    Point cum_center = diagonal_a.cross_point(diagonal_b);
-    Circle
-        cum_circle(cum_center, cum_center.dist_to(projection(cum_center, c_a)));
-    return cum_circle;
+    Point ins_center = bisector_a.cross_point(bisector_b);
+    Circle ins_circle(ins_center,
+                      ins_center.dist_to(projection(ins_center, c_a)));
+    return ins_circle;
   }
 
   Circle circumscribedCircle() const {
@@ -372,19 +381,45 @@ class Triangle : public Polygon {
     Line a_b(this->points[0], this->points[1]);
     Line b_c(this->points[1], this->points[2]);
 
-    Line height_a_b(center_a_b, -1.0 / a_b.get_k());
-    Line height_b_c(center_b_c, -1.0 / b_c.get_k());
-    std::cout << height_a_b << height_b_c;
+    Line bisection_a_b(center_a_b, -1.0 / a_b.get_k());
+    Line bisection_b_c(center_b_c, -1.0 / b_c.get_k());
 
-    Point ins_center(height_a_b.cross_point(height_b_c));
-    Circle ins_circle(ins_center, ins_center.dist_to(this->points[2]));
-
-    return ins_circle;
+    Point cum_center(bisection_a_b.cross_point(bisection_b_c));
+    Circle cum_circle(cum_center, cum_center.dist_to(this->points[2]));
+    return cum_circle;
   }
-//  Point centroid() {}
-//  Point orthocenter() {}
-//  Line EulerLine() {}
-//  Circle ninePointsCircle() {}
+
+  Point centroid() { return this->center_of_mass(); }
+
+  Point orthocenter() {
+    Point a(this->points[0]);
+    Point b(this->points[1]);
+    Line b_c = Line(b, this->points[2]);
+    Line c_a = Line(this->points[2], a);
+
+    Line height_a_h(a, projection(a, b_c));
+    Line height_b_h(b, projection(b, c_a));
+
+    Point ort_center = height_a_h.cross_point(height_b_h);
+    return ort_center;
+  }
+
+  Line EulerLine() {
+    Point centroid = this->center_of_mass();
+    Point ort_center = this->orthocenter();
+
+    Line euler_line(centroid, ort_center);
+    return euler_line;
+  }
+
+  Circle ninePointsCircle() {
+    Point ort_center = this->orthocenter();
+    Circle ins_circle = this->circumscribedCircle();
+    Point nine_center = (ort_center + ins_circle.center()) / 2.;
+
+    Circle nine_point_circle(nine_center, ins_circle.radius() / 2.);
+    return nine_point_circle;
+  }
 };
 /** Triangle **/
 
@@ -419,8 +454,20 @@ class Square : public Rectangle {
  public:
   Square(const Point &a, const Point &b) : Rectangle({a, b, 1}) {}
 
-//  Circle circumscribedCircle() {}
-//  Circle inscribedCircle() {}
-//  Point center() { return this->center_of_mass(); }
+  Circle circumscribedCircle() {
+    double radius = this->points[0].dist_to(this->points[2]) / 2.;
+    Point center = this->center();
+
+    Circle cum_circle(center, radius);
+    return cum_circle;
+  }
+
+  Circle inscribedCircle() {
+    double radius = this->points[0].dist_to(this->points[1]) / 2.;
+    Point center = this->center();
+
+    Circle ins_circle(center, radius);
+    return ins_circle;
+  }
 };
 /** Square **/
